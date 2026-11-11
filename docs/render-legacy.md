@@ -4,23 +4,62 @@ This branch restores the existing platform while Jonathan's rebuild continues
 in `daktarionline/juvenotes`. Deploy this branch without merging it into the
 rebuild or changing that project's database.
 
+Deployment source: `wechulisimiyu/juvenotes-legacy`, branch
+`deploy/render-legacy`, forked from `juvenotes/web`.
+
 ## Provisioned target
 
 - Supabase organization: `juvenotes`
 - Project: `juvenotes-legacy` (`nhxrdfuogclawvexxvjs`), Singapore, Free
-- Render: one Free Docker web service, Singapore, manual deploys
+- Render web service: form prepared for Free Docker, Singapore, manual deploys;
+  the service has not yet been created
+- Render cache: `juvenotes-legacy-cache` (`red-dbq476tg1s2s73bvqu2g`), Free,
+  Singapore, internal host `red-dbq476tg1s2s73bvqu2g`, port `6379`;
+  external connections blocked
 - Render health check: `/healthz`
 
-The Render service is not created by this document. Finish configuration after
-the backup is available and the restore passes validation.
+## Verified restoration: 11 November 2026
+
+The database has been restored into the dedicated Supabase project. All 49
+application tables and 342,247 source rows matched an independent native COPY
+restore, including complete per-table content fingerprints. The restored
+database is approximately 77 MiB, with 1,828 users and 14,586 questions.
+
+The source had 81 Lucid migrations. The one pending migration,
+`1768129805053_create_add_session_tracking_columns_table`, has now been applied
+and recorded, bringing the history to 82. It adds nullable session tracking
+columns and an index; existing application records remain intact.
+
+Every application table has RLS enabled. `anon` and `authenticated` have no
+usage privilege on the application schema. The separate `juvenotes_app` login
+has data privileges and a backend-only RLS policy, with no schema creation
+privilege. Supabase's security advisors reported no findings after restoration.
+
+Local checks using the production build and restored database passed:
+
+- `/healthz`: HTTP 200 with database connected.
+- Homepage and login page: HTTP 200.
+- Guest access to concepts: redirected to login.
+- Email/password login with a temporary local account: redirected to `/learn`.
+- Authenticated concepts: HTTP 200.
+
+The temporary test account existed only in the local test database and was
+removed afterwards. The original backup was not modified.
+
+The website is not deployed yet. Supabase's dashboard is signed out, so its
+actual session-pooler address and root certificate remain to be copied. The
+original container environment export has not been supplied. Cloudflare,
+which serves the domain's DNS, is also at its sign-in screen. DNS has not changed.
 
 ## Restore before cutover
 
-The previously validated Coolify database backup is named
-`data_coolify_backups_databases_root-team-0_juvenotes-web-1-t4sss4kw44gwoocw4kkkgogw_pg-dump-postgres-1781200807.dmp`.
-It was recorded on the owner's Mac Desktop, not in this checkout. Obtain the
-actual file and inspect its archive contents with `pg_restore --list` before
-running any restore commands. This is the application backup, not `coolify-db`.
+The correct backup is `juvenotes-postgres.sql.gz`, from droplet `demo-ae` at the
+1 November 2026 DigitalOcean shutdown. Its SHA-256 is
+`445020714321684c78c60bef81aee0ea0b5065dfaf0d363a2b3edcb059f06639`.
+The associated README identifies it as `pg_dumpall` of the live database.
+Extract only `juvenotes_restore`; do not execute its cluster-wide role or
+database creation statements against Supabase. This supersedes the older
+July backup previously suggested for this deployment.
 
 1. Keep the original dump unchanged and record its SHA-256 checksum.
 2. Restore into an isolated local Postgres database first. Inspect table sizes,
@@ -30,9 +69,9 @@ running any restore commands. This is the application backup, not `coolify-db`.
    ownership and grants; never restore Supabase's managed schemas or run a
    cluster-wide clean. Revoke Data API access to application tables before
    importing user data. Use a separate backend database role.
-5. Compare source and destination row counts and sequence values. Historical
-   comparison figures were 1,753 users and 14,586 questions; the actual supplied
-   dump is authoritative.
+5. Compare source and destination row counts, content and sequence values.
+   Source figures are 1,828 users and 14,586 questions; the source has 342,247
+   rows across 49 tables before the additional migration history entry.
 6. Compare the restored migration history with this branch before applying
    outstanding migrations. Never run seeders over restored production data.
 
