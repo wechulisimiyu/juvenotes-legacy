@@ -12,7 +12,14 @@ const dbConfig = defineConfig({
         user: env.get('DB_USER'),
         password: env.get('DB_PASSWORD'),
         database: env.get('DB_DATABASE'),
+        ssl: env.get('DB_SSL', false)
+          ? {
+              rejectUnauthorized: true,
+              ca: env.get('DB_SSL_CA')?.replace(/\\n/g, '\n'),
+            }
+          : false,
       },
+      pool: { min: 0, max: 3 },
       migrations: {
         naturalSort: true,
         paths: ['database/migrations'],

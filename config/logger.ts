@@ -18,7 +18,11 @@ const loggerConfig = defineConfig({
       transport: {
         targets: targets()
           .pushIf(!app.inProduction, targets.pretty())
-          .pushIf(app.inProduction, {
+          .pushIf(
+            app.inProduction && env.get('LOG_TRANSPORT') === 'stdout',
+            targets.file({ destination: 1 })
+          )
+          .pushIf(app.inProduction && env.get('LOG_TRANSPORT') !== 'stdout', {
             target: 'pino-loki',
             options: {
               host: env.get('LOKI_HOST'),

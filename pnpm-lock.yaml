@@ -166,6 +166,9 @@ importers:
       '@tiptap/extension-task-list':
         specifier: ^2.11.5
         version: 2.26.1(@tiptap/core@2.26.1(@tiptap/pm@2.26.1))
+      '@tiptap/extension-text-style':
+        specifier: ^2.11.5
+        version: 2.26.1(@tiptap/core@2.26.1(@tiptap/pm@2.26.1))
       '@tiptap/extension-youtube':
         specifier: ^2.11.5
         version: 2.26.1(@tiptap/core@2.26.1(@tiptap/pm@2.26.1))
@@ -371,9 +374,6 @@ importers:
       '@swc/core':
         specifier: ^1.7.26
         version: 1.13.5(@swc/helpers@0.5.17)
-      '@tiptap/extension-text-style':
-        specifier: ^2.11.5
-        version: 2.26.1(@tiptap/core@2.26.1(@tiptap/pm@2.26.1))
       '@types/lodash':
         specifier: ^4.17.14
         version: 4.17.20

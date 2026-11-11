@@ -12,6 +12,8 @@ import { Route } from '@adonisjs/core/http'
 import { middleware } from './kernel.js'
 import transmit from '@adonisjs/transmit/services/main'
 
+router.get('/healthz', [() => import('#controllers/health_controller'), 'handle'])
+
 const HomeController = () => import('#controllers/home/home_controller')
 const SupportController = () => import('#controllers/home/support_controller')
 const LoginController = () => import('#controllers/auth/login_controller')
