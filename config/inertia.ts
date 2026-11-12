@@ -3,6 +3,7 @@ import UserDto from '#dtos/user'
 // import { StatsigService } from '#services/statsig'
 import { defineConfig } from '@adonisjs/inertia'
 import type { InferSharedProps } from '@adonisjs/inertia/types'
+import env from '#start/env'
 
 const inertiaConfig = defineConfig({
   /**
@@ -14,6 +15,7 @@ const inertiaConfig = defineConfig({
    * Data that should be shared with all rendered pages
    */
   sharedData: {
+    restorationMode: () => env.get('LEGACY_RESTORE_MODE', false),
     user: async (ctx) => {
       const auth = ctx.auth
       if (!auth) return null

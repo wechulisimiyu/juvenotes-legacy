@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { useForm, Link } from '@inertiajs/vue3'
+import { useForm, usePage, Link } from '@inertiajs/vue3'
+import { computed } from 'vue'
 import { AlertCircle, Loader } from 'lucide-vue-next'
 import AuthLayout from '~/layouts/AuthLayout.vue'
 
 defineOptions({ layout: AuthLayout })
 
 const logoPath = '/images/logo.webp'
+const page = usePage()
+const restorationMode = computed(() => page.props.restorationMode === true)
 
 defineProps<{
   exceptions: Record<string, string>
@@ -28,11 +31,15 @@ const form = useForm({
         <div class="text-center space-y-2">
           <img :src="logoPath" alt="Juvenotes" class="h-12 mx-auto mb-4" />
           <h1 class="text-2xl font-semibold">Welcome back</h1>
-          <p class="text-sm text-muted-foreground">
+          <p v-if="!restorationMode" class="text-sm text-muted-foreground">
             New to Juvenotes?
             <Link href="/register" class="text-primary hover:underline transition-all">
               Create an account
             </Link>
+          </p>
+          <p v-else class="text-sm text-muted-foreground" role="status">
+            Existing accounts can sign in with a password. Google sign-in, registration and password
+            recovery are temporarily unavailable while we restore these services.
           </p>
         </div>
 
@@ -85,6 +92,7 @@ const form = useForm({
               <Label for="remember" class="text-sm">Remember me</Label>
             </div>
             <Link
+              v-if="!restorationMode"
               href="/forgot-password"
               class="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
@@ -97,7 +105,7 @@ const form = useForm({
             <Loader v-if="form.processing" class="mr-2 h-4 w-4 animate-spin" />
             {{ form.processing ? 'Signing in...' : 'Sign in' }}
           </Button>
-          <div class="relative my-4">
+          <div v-if="!restorationMode" class="relative my-4">
             <div class="absolute inset-0 flex items-center">
               <span class="w-full border-t" />
             </div>
@@ -107,6 +115,7 @@ const form = useForm({
           </div>
 
           <Button
+            v-if="!restorationMode"
             type="button"
             class="w-full bg-card hover:bg-secondary text-foreground font-medium py-3 px-4 border border-border rounded-lg shadow-sm transition-all duration-200 hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/50"
           >

@@ -46,10 +46,18 @@ Local checks using the production build and restored database passed:
 The temporary test account existed only in the local test database and was
 removed afterwards. The original backup was not modified.
 
-The website is not deployed yet. Supabase's dashboard is signed out, so its
-actual session-pooler address and root certificate remain to be copied. The
-original container environment export has not been supplied. Cloudflare,
-which serves the domain's DNS, is also at its sign-in screen. DNS has not changed.
+On 12 November, Supabase and Cloudflare access was restored. The session pooler
+is `aws-0-ap-southeast-1.pooler.supabase.com:5432`; the runtime login is
+`juvenotes_app.nhxrdfuogclawvexxvjs`. TLS certificate verification remains enabled.
+DNS is still pointed at the old server pending the Render checks.
+
+The original container environment export has not been supplied. Deploy with
+`LEGACY_RESTORE_MODE=true` until those integration credentials are restored.
+Existing email/password accounts can sign in and browse content. Registration,
+Google sign-in and password recovery redirect to a login page with an explicit
+restoration notice. Email-change, resend-email and payment endpoints return 503
+without invoking unconfigured external services. These guards default to off
+when the flag is unset, preserving normal application behavior elsewhere.
 
 ## Restore before cutover
 
@@ -96,6 +104,7 @@ production `.env`, passwords, API keys, or backups.
 | `LOCK_STORE`                                                  | `memory` for a single instance                                  |
 | `LOG_LEVEL`                                                   | `info`                                                          |
 | `LOG_TRANSPORT`                                               | `stdout`                                                        |
+| `LEGACY_RESTORE_MODE`                                         | `true` until original integration credentials are recovered     |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE` | Dedicated Supabase backend connection                           |
 | `DB_SSL`                                                      | `true`                                                          |
 | `DB_SSL_CA`                                                   | Supabase CA certificate when required; literal `\n` is accepted |

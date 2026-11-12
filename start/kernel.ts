@@ -25,6 +25,7 @@ server.errorHandler(() => import('#exceptions/handler'))
 server.use([
   () => import('@foadonis/maintenance/maintenance_middleware'),
   () => import('#middleware/container_bindings_middleware'),
+  () => import('#middleware/restoration_middleware'),
   () => import('@adonisjs/static/static_middleware'),
   () => import('@adonisjs/cors/cors_middleware'),
   () => import('@adonisjs/vite/vite_middleware'),

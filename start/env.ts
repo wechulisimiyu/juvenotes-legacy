@@ -39,6 +39,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_SSL: Env.schema.boolean.optional(),
   DB_SSL_CA: Env.schema.string.optional(),
   LOG_TRANSPORT: Env.schema.enum.optional(['stdout', 'loki'] as const),
+  LEGACY_RESTORE_MODE: Env.schema.boolean.optional(),
 
   /*
   |----------------------------------------------------------
