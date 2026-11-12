@@ -11,8 +11,10 @@ Deployment source: `wechulisimiyu/juvenotes-legacy`, branch
 
 - Supabase organization: `juvenotes`
 - Project: `juvenotes-legacy` (`nhxrdfuogclawvexxvjs`), Singapore, Free
-- Render web service: form prepared for Free Docker, Singapore, manual deploys;
-  the service has not yet been created
+- Render web service: `juvenotes-legacy` (`srv-dbql2hu7bikc73adqh7g`),
+  Free Docker, Singapore, manual deploys (auto-deploy off)
+- Live URL: https://juvenotes.com
+- Render URL: https://juvenotes-legacy.onrender.com
 - Render cache: `juvenotes-legacy-cache` (`red-dbq476tg1s2s73bvqu2g`), Free,
   Singapore, internal host `red-dbq476tg1s2s73bvqu2g`, port `6379`;
   external connections blocked
@@ -49,7 +51,14 @@ removed afterwards. The original backup was not modified.
 On 12 November, Supabase and Cloudflare access was restored. The session pooler
 is `aws-0-ap-southeast-1.pooler.supabase.com:5432`; the runtime login is
 `juvenotes_app.nhxrdfuogclawvexxvjs`. TLS certificate verification remains enabled.
-DNS is still pointed at the old server pending the Render checks.
+The deployment became healthy on 12 November 2026. The session pooler requires
+the Supabase Root 2021 CA, downloaded from Database Settings and configured as
+`DB_SSL_CA`. Certificate verification remains enabled. Root DNS now uses a
+CNAME to `juvenotes-legacy.onrender.com`, with a matching `www` CNAME and a
+Render redirect to the root domain. Mail and development records were preserved.
+HTTPS health returned 200. A temporary synthetic account successfully signed in
+and loaded authenticated concepts (HTTP 200). It and its session log were
+removed afterwards, returning the user count to 1,828.
 
 The original container environment export has not been supplied. Deploy with
 `LEGACY_RESTORE_MODE=true` until those integration credentials are restored.
@@ -98,8 +107,8 @@ production `.env`, passwords, API keys, or backups.
 | `HOST`                                                        | `0.0.0.0`                                                       |
 | `PORT`                                                        | Render's assigned port, normally `10000`                        |
 | `APP_NAME`                                                    | `Juvenotes`                                                     |
-| `APP_URL`, `APP_DOMAIN`                                       | Initial Render URL; change to the custom domain at cutover      |
-| `APP_KEY`                                                     | Recover the original production key where available             |
+| `APP_URL`, `APP_DOMAIN`                                       | `https://juvenotes.com`      |
+| `APP_KEY`                                                     | Fresh deployment key; old sessions are invalidated             |
 | `SESSION_DRIVER`                                              | `cookie`                                                        |
 | `LOCK_STORE`                                                  | `memory` for a single instance                                  |
 | `LOG_LEVEL`                                                   | `info`                                                          |
@@ -127,8 +136,16 @@ whether delayed email delivery has a running worker before promising it works.
 - Change DNS only after the Render deployment passes these checks; preserve
   existing email and other unrelated DNS records.
 
-After successful deployment, configure an external HTTP probe every 10 minutes
-with failure notifications. One continuously running web service uses at most
+Supabase Cron job `juvenotes-render-warm` (ID 1) is active on `*/10 * * * *`.
+It uses `pg_net` to GET `https://juvenotes.com/healthz` with a 60-second timeout
+and no-cache header. The endpoint checks Postgres and returns only status,
+with `Cache-Control: no-store`. The first scheduled run at 06:00 UTC on
+12 November succeeded and its HTTP response was 200 with status ok.
+Responses are retained for six hours in `net._http_response`; execution history
+is in `cron.job_run_details`. This keeps the service warm without external
+failure notifications. Disable with `select cron.unschedule('juvenotes-render-warm');`.
+At most 4,464 requests run per 31-day month, with only a few MB of expected
+traffic including response headers. One continuously running web service uses at most
 744 of the workspace's 750 Free instance hours in a 31-day month. Other free
 web services share that allowance. Probes cannot guarantee availability.
 Watch the workspace's 5 GB bandwidth and 500 build-minute allowances as well.
